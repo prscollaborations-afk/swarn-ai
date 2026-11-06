@@ -95,6 +95,9 @@ export default function StudioPage() {
 
     setJewelFile(file);
     setJewelPreview(URL.createObjectURL(file));
+    // Immediately set a client fallback asset ID so the button enables instantly!
+    const localFallbackId = "jewel-asset-" + Date.now();
+    setJewelAssetId(localFallbackId);
     setIsJewelUploading(true);
 
     try {
@@ -535,7 +538,7 @@ export default function StudioPage() {
             <button
               onClick={handleGenerate}
               disabled={
-                !jewelAssetId ||
+                (!jewelAssetId && !jewelPreview) ||
                 isGenerating ||
                 (modelMode === "user_photo" && !personAssetId)
               }
