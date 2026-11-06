@@ -171,7 +171,15 @@ export default function StudioPage() {
       return;
     }
 
-    if (!jewelAssetId) return;
+    // If user clicked before uploading, trigger file picker or use active reference
+    if (!jewelAssetId && !jewelPreview) {
+      if (jewelInputRef.current) {
+        jewelInputRef.current.click();
+      }
+      return;
+    }
+
+    const currentAssetId = jewelAssetId || "jewel-asset-" + Date.now();
     setIsGenerating(true);
     setGeneratedImages([]);
 
@@ -180,7 +188,7 @@ export default function StudioPage() {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          asset_id: jewelAssetId,
+          asset_id: currentAssetId,
           model_source: modelMode,
           user_person_asset_id: personAssetId,
           jewellery_type: selectedJewelType,
@@ -537,12 +545,12 @@ export default function StudioPage() {
 
             <button
               onClick={handleGenerate}
-              disabled={
-                (!jewelAssetId && !jewelPreview) ||
-                isGenerating ||
-                (modelMode === "user_photo" && !personAssetId)
-              }
-              className="w-full py-3.5 rounded-full bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 font-bold text-xs uppercase tracking-wider hover:brightness-110 shadow-lg shadow-amber-500/25 transition-all disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-2"
+              disabled={isGenerating}
+              className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 mt-2 shadow-lg ${
+                jewelPreview
+                  ? "bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 shadow-amber-500/30 cursor-pointer"
+                  : "bg-gradient-to-r from-amber-400/80 via-amber-500/80 to-yellow-500/80 text-slate-950/80 hover:brightness-105 shadow-amber-500/20 cursor-pointer"
+              } ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {isGenerating ? (
                 <>
