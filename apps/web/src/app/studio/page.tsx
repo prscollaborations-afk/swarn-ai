@@ -158,10 +158,13 @@ export default function StudioPage() {
 
   const [showLoginModal, setShowLoginModal] = useState(false);
 
-  // Trigger Try-On Generation (Strictly Authenticated)
+  // Trigger Try-On Generation
   const handleGenerate = async () => {
+    // If not logged in yet, prompt global single-entrance Auth modal
     if (!isUserLoggedIn) {
-      setShowLoginModal(true);
+      if (typeof window !== "undefined") {
+        window.dispatchEvent(new CustomEvent("open-auth-modal"));
+      }
       return;
     }
 
