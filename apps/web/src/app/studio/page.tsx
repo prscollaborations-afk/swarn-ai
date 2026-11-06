@@ -1,5 +1,6 @@
 "use client";
 
+import { getApiUrl } from "@/lib/api";
 import React, { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -100,7 +101,7 @@ export default function StudioPage() {
       const formData = new FormData();
       formData.append("file", file);
 
-      const res = await fetch("http://localhost:8000/assets/upload", {
+      const res = await fetch(getApiUrl("/assets/upload"), {
         method: "POST",
         body: formData,
       });
@@ -169,7 +170,7 @@ export default function StudioPage() {
     setGeneratedImages([]);
 
     try {
-      const res = await fetch("http://localhost:8000/jobs", {
+      const res = await fetch(getApiUrl("/jobs"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -191,7 +192,7 @@ export default function StudioPage() {
       // Poll until generation completes
       const poll = setInterval(async () => {
         try {
-          const pollRes = await fetch(`http://localhost:8000/jobs/${currentJobId}`);
+          const pollRes = await fetch(getApiUrl(`/jobs/${currentJobId}`));
           const pollData = await pollRes.json();
           if (pollData.data.status === "completed") {
             clearInterval(poll);
@@ -576,7 +577,7 @@ export default function StudioPage() {
               {activeImage ? (
                 <div className="relative group max-w-md w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                   <img
-                    src={`http://localhost:8000${activeImage.url.replace('/api/backend', '')}`}
+                    src={getApiUrl(activeImage.url.replace('/api/backend', ''))}
                     alt="Try-On Result"
                     className="w-full h-full object-cover"
                   />
@@ -585,7 +586,7 @@ export default function StudioPage() {
                   </div>
                   <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <a
-                      href={`http://localhost:8000${activeImage.url.replace('/api/backend', '')}`}
+                      href={getApiUrl(activeImage.url.replace('/api/backend', ''))}
                       download={`aabhushan_${selectedJewelType}_${activeImage.angle}.png`}
                       className="px-4 py-2 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg hover:brightness-110"
                     >
@@ -633,7 +634,7 @@ export default function StudioPage() {
                       }`}
                     >
                       <img
-                        src={`http://localhost:8000${img.url.replace('/api/backend', '')}`}
+                        src={getApiUrl(img.url.replace('/api/backend', ''))}
                         alt={img.angle}
                         className="w-full h-full object-cover"
                       />

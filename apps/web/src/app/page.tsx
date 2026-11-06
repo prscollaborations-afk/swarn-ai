@@ -1,5 +1,6 @@
 "use client";
 
+import { getApiUrl } from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -75,7 +76,7 @@ export default function HomePage() {
 
     const pollInterval = setInterval(async () => {
       try {
-        const res = await fetch(`http://localhost:8000/auth/status/${registeredData.user_id}`);
+        const res = await fetch(getApiUrl(`/auth/status/${registeredData.user_id}`));
         const data = await res.json();
         if (data.success && data.data.status === "active") {
           setIsApproved(true);
@@ -107,7 +108,7 @@ export default function HomePage() {
     setLoginError("");
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/login", {
+      const res = await fetch(getApiUrl("/auth/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: authEmail, password: loginPassword }),
@@ -136,7 +137,7 @@ export default function HomePage() {
     e.preventDefault();
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/register", {
+      const res = await fetch(getApiUrl("/auth/register"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -165,7 +166,7 @@ export default function HomePage() {
   const handleGoogleOAuth = async () => {
     setIsSubmitting(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/google-oauth", {
+      const res = await fetch(getApiUrl("/auth/google-oauth"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

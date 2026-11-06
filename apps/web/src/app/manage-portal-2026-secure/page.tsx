@@ -1,5 +1,6 @@
 "use client";
 
+import { getApiUrl } from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { 
@@ -37,7 +38,7 @@ export default function AdminDashboardPage() {
     e.preventDefault();
     setLoginError("");
     try {
-      const res = await fetch("http://localhost:8000/auth/admin/login", {
+      const res = await fetch(getApiUrl("/auth/admin/login"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email: adminEmail, password: adminPassword }),
@@ -58,7 +59,7 @@ export default function AdminDashboardPage() {
   const fetchWaitlist = async () => {
     setIsLoading(true);
     try {
-      const res = await fetch("http://localhost:8000/auth/admin/waitlist");
+      const res = await fetch(getApiUrl("/auth/admin/waitlist"));
       const data = await res.json();
       if (data.success) {
         setUsers(data.data);
@@ -73,7 +74,7 @@ export default function AdminDashboardPage() {
   const handleGrantAccess = async (userId: string, credits: number = 5) => {
     setGrantingId(userId);
     try {
-      const res = await fetch("http://localhost:8000/auth/admin/grant-access", {
+      const res = await fetch(getApiUrl("/auth/admin/grant-access"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ user_id: userId, credits_to_add: credits }),

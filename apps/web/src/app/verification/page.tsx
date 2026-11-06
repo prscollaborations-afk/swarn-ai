@@ -1,5 +1,6 @@
 "use client";
 
+import { getApiUrl } from "@/lib/api";
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import {
@@ -75,7 +76,7 @@ export default function VerificationPage() {
         notes,
       };
 
-      const res = await fetch("http://localhost:8000/auth/verification/apply", {
+      const res = await fetch(getApiUrl("/auth/verification/apply"), {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload),
