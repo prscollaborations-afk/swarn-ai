@@ -1,0 +1,52 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test-api:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install dependencies
+        run: |
+          cd apps/api
+          python -m venv .venv
+          .venv/bin/pip install --upgrade pip
+          .venv/bin/pip install -r requirements.txt greenlet
+      - name: Seed Database
+        run: |
+          cd apps/api
+          PYTHONPATH=. .venv/bin/python -m app.seeds.seed
+      - name: Run Pytest
+        run: |
+          cd apps/api
+          PYTHONPATH=. .venv/bin/pytest
+
+  test-web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Install pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'pnpm'
+      - name: Install dependencies
+        run: pnpm install
+      - name: Build Packages
+        run: pnpm --filter @aabhushan/shared build
+      - name: Build Web Application
+        run: pnpm --filter @aabhushan/web build
+

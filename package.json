@@ -1,0 +1,16 @@
+{
+  "name": "aabhushan-ai",
+  "private": true,
+  "scripts": {
+    "dev": "pnpm --filter @aabhushan/web dev",
+    "dev:all": "concurrently \"pnpm --filter @aabhushan/web dev\" \"make dev-api\"",
+    "build": "pnpm --filter @aabhushan/shared build && pnpm --filter @aabhushan/web build",
+    "lint": "pnpm --filter @aabhushan/web lint",
+    "test": "pnpm --filter @aabhushan/web test && make test-api"
+  },
+  "devDependencies": {
+    "concurrently": "^8.2.2",
+    "typescript": "^5.4.5"
+  }
+}
+

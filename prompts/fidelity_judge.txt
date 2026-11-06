@@ -1,0 +1,3 @@
+fidelity_judge.txt
+Image 1 is the original jewellery. Image 2 is a generated photo of a model wearing it. Return ONLY JSON: {stones, pattern, shape, colour, placement, overall: 0-100, issues: [short strings]}. Be strict: any missing, added or changed stone, motif or chain part must reduce the score. Ignore the model and the background.
+

@@ -1,0 +1,3 @@
+base_portrait.txt
+Photorealistic studio portrait of an Indian {gender}, {age_label}, {skin_tone_desc} skin tone, {face_shape_desc} face shape, {region_desc}, {hair_desc}, {makeup_desc}, wearing {outfit_desc}. No jewellery on the {wear_location}. Neutral soft light, sharp focus, natural skin texture, realistic proportions, looking at camera.
+

@@ -1,0 +1,13 @@
+.git/
+.venv/
+node_modules/
+apps/api/.venv/
+apps/api/data/
+storage_data/
+*.png
+*.jpg
+*.jpeg
+*.pyc
+__pycache__/
+*.db
+*.sqlite3

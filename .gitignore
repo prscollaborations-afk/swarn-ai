@@ -1,0 +1,32 @@
+# Dependencies
+node_modules/
+.pnpm-store/
+.venv/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+
+# Environment and sensitive keys
+.env
+*.env
+*.pem
+*.key
+
+# Build outputs
+.next/
+out/
+build/
+dist/
+
+# Databases and temporary uploads
+*.db
+*.sqlite3
+storage_data/
+/tmp/
+
+# OS specific
+.DS_Store
+Thumbs.db
+*.log
+.vercel
