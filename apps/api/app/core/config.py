@@ -35,7 +35,7 @@ class Settings(BaseSettings):
     AI_PROVIDER: str = "auto"
 
     class Config:
-        env_file = "/Users/macbook/swarn-ai/.env"
+        env_file = ".env"
         extra = "ignore"
 
 
