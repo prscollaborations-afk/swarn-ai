@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import "./globals.css";
 import GlassNavbar from "@/components/GlassNavbar";
+import { AuthModal } from "@/components/AuthModal";
 
 export const metadata: Metadata = {
   title: "Aabhushan AI | AI Studio for Indian Jewellery Shops",
@@ -20,6 +21,9 @@ export default function RootLayout({
         
         {/* Glass sticky pill navbar */}
         <GlassNavbar />
+
+        {/* Global Single-Entrance Auth Modal */}
+        <AuthModal />
 
         {/* Main application body with top padding for navbar */}
         <main className="pt-24 pb-20 lg:pb-12 min-h-screen px-4 max-w-7xl mx-auto">

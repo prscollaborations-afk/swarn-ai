@@ -124,14 +124,18 @@ export default function GlassNavbar() {
             </button>
 
             {/* Login / Auth Button */}
-            <Link
-              href="/?auth=true"
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold text-xs hover:brightness-110 shadow-md shadow-amber-500/20 transition-all"
+            <button
+              onClick={() => {
+                if (typeof window !== "undefined") {
+                  window.dispatchEvent(new CustomEvent("open-auth-modal"));
+                }
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-bold text-xs hover:brightness-110 shadow-md shadow-amber-500/20 transition-all cursor-pointer"
               title="Retailer Login / Register"
             >
               <UserCircle className="w-4 h-4" />
               <span>{lang === "en" ? "Login / Sign In" : "लॉगिन"}</span>
-            </Link>
+            </button>
           </div>
         </nav>
       </header>
