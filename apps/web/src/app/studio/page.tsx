@@ -591,16 +591,18 @@ export default function StudioPage() {
               {activeImage ? (
                 <div className="relative group max-w-md w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                   <img
-                    src={getApiUrl(activeImage.url.replace('/api/backend', ''))}
+                    src={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
                     alt="Try-On Result"
-                    className="w-full h-full object-cover"
+                    className="w-full h-full object-contain bg-[#0a0a0f]"
                   />
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-amber-300 border border-white/10">
                     {selectedJewelType.toUpperCase()} | Shot: {activeImage.angle.toUpperCase()}
                   </div>
                   <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <a
-                      href={getApiUrl(activeImage.url.replace('/api/backend', ''))}
+                      href={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
+                      target="_blank"
+                      rel="noopener noreferrer"
                       download={`aabhushan_${selectedJewelType}_${activeImage.angle}.png`}
                       className="px-4 py-2 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg hover:brightness-110"
                     >
