@@ -103,6 +103,7 @@ export default function StudioPage() {
     try {
       const formData = new FormData();
       formData.append("file", file);
+      formData.append("jewellery_type", selectedJewelType);
 
       const res = await fetch(getApiUrl("/assets/upload"), {
         method: "POST",
@@ -177,6 +178,27 @@ export default function StudioPage() {
         jewelInputRef.current.click();
       }
       return;
+    }
+
+    // Check credits and deduct
+    const cost = Math.max(1, selectedAngles.length * (resolution === "4K" ? 2 : 1));
+    let currentUserCredits = 5;
+    try {
+      const uStr = localStorage.getItem("aabhushan_user");
+      if (uStr) {
+        const u = JSON.parse(uStr);
+        currentUserCredits = typeof u.credits === "number" ? u.credits : 5;
+        if (currentUserCredits < cost) {
+          alert(`Insufficient credits! You need ${cost} credits, but have ${currentUserCredits}. Please top up in Billing.`);
+          return;
+        }
+        // Deduct
+        u.credits = Math.max(0, currentUserCredits - cost);
+        localStorage.setItem("aabhushan_user", JSON.stringify(u));
+        window.dispatchEvent(new CustomEvent("credits-updated", { detail: u.credits }));
+      }
+    } catch (e) {
+      console.warn("Credit check error:", e);
     }
 
     const currentAssetId = jewelAssetId || "jewel-asset-" + Date.now();

@@ -39,6 +39,42 @@ export default function GlassNavbar() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
+    // Read initial credits from local storage if user exists
+    const syncCredits = () => {
+      try {
+        const userStr = localStorage.getItem("aabhushan_user");
+        if (userStr) {
+          const user = JSON.parse(userStr);
+          if (typeof user.credits === "number") {
+            setCredits(user.credits);
+            return;
+          }
+        }
+      } catch {}
+    };
+
+    syncCredits();
+
+    const handleCreditsUpdated = (e: any) => {
+      if (typeof e.detail === "number") {
+        setCredits(e.detail);
+      } else {
+        syncCredits();
+      }
+    };
+
+    window.addEventListener("credits-updated", handleCreditsUpdated);
+    window.addEventListener("storage", syncCredits);
+    const interval = setInterval(syncCredits, 2000);
+
+    return () => {
+      window.removeEventListener("credits-updated", handleCreditsUpdated);
+      window.removeEventListener("storage", syncCredits);
+      clearInterval(interval);
+    };
+  }, []);
+
+  useEffect(() => {
     const handleScroll = () => {
       setScrolled(window.scrollY > 20);
     };
