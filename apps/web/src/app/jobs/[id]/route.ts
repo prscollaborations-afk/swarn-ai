@@ -4,15 +4,19 @@ import { getJob } from "../jobsRegistry";
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
     const job = getJob(params.id);
-    let jType = job?.jewellery_type?.toLowerCase() || "necklace";
-    if (!["earrings", "necklace", "ring", "bangles"].includes(jType)) {
-      if (jType.includes("earring") || jType.includes("jhumka")) jType = "earrings";
-      else if (jType.includes("ring")) jType = "ring";
-      else if (jType.includes("bangle") || jType.includes("kada")) jType = "bangles";
-      else jType = "necklace";
+
+    // If job is still processing, return status "processing"
+    if (job && job.status === "processing") {
+      return NextResponse.json({
+        success: true,
+        data: {
+          job_id: params.id,
+          status: "processing",
+        },
+      });
     }
 
-    // If job was saved in registry with images (including potential Agnes generated CDN URL), return them!
+    // If completed and has images, return them
     if (job?.images && job.images.length > 0) {
       return NextResponse.json({
         success: true,
@@ -22,6 +26,14 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
           images: job.images,
         },
       });
+    }
+
+    let jType = job?.jewellery_type?.toLowerCase() || "necklace";
+    if (!["earrings", "necklace", "ring", "bangles"].includes(jType)) {
+      if (jType.includes("earring") || jType.includes("jhumka")) jType = "earrings";
+      else if (jType.includes("ring")) jType = "ring";
+      else if (jType.includes("bangle") || jType.includes("kada")) jType = "bangles";
+      else jType = "necklace";
     }
 
     const anglesToGenerate = (job?.target_angles && job.target_angles.length > 0)

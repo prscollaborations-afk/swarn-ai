@@ -228,6 +228,7 @@ export default function StudioPage() {
           model_source: modelMode,
           user_person_asset_id: personAssetId,
           jewellery_type: selectedJewelType,
+          design_lock: analysis?.design_lock || "",
           target_angles: selectedAngles,
           gender,
           skin_tone: skinTone,

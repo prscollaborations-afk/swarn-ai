@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { saveJob, updateJob, TryOnImage } from "./jobsRegistry";
+import { saveJob, TryOnImage } from "./jobsRegistry";
 import { generateVirtualTryOn } from "@/lib/services/aiCloudService";
 
 export async function POST(req: NextRequest) {
@@ -30,23 +30,7 @@ export async function POST(req: NextRequest) {
       three_quarter: "right",
     };
 
-    // Pre-populate with high fidelity model imagery so response is instantaneous & bulletproof
-    const initialImages: TryOnImage[] = targetAngles.map((angleName: string, idx: number) => {
-      const fileKey = angleFileKeys[angleName] || "front";
-      const displayLabel = angleLabels[angleName] || angleName.toUpperCase();
-      const imageUrl = `/models/${jewelleryType}_${fileKey}.jpg`;
-
-      return {
-        id: `img-${jewelleryType}-${fileKey}-${idx}`,
-        url: imageUrl,
-        angle: angleName,
-        label: `${jewelleryType.toUpperCase()} | Shot: ${displayLabel}`,
-        resolution: resolution,
-        fidelity_score: 98 - (idx % 3),
-        model_info: `Indian Model (${body.skin_tone || "Warm Wheatish"}, ${body.face_shape || "Oval Face"}, Banarasi Silk)`,
-      };
-    });
-
+    // Initialize job in 'processing' status
     saveJob({
       job_id: jobId,
       asset_id: body.asset_id || "jewel-asset",
@@ -55,34 +39,65 @@ export async function POST(req: NextRequest) {
       resolution: resolution,
       model_info: `Authentic Model (${body.skin_tone || "Warm Sand 3"}, ${body.face_shape || "Oval Face"})`,
       design_lock: designLock,
-      status: "completed",
-      images: initialImages,
+      status: "processing",
+      images: [],
       created_at: Date.now(),
     });
 
-    // In the background, trigger real Agnes 2.5 photorealistic AI generation for the primary angle!
+    // Generate real photorealistic model try-on images with Agnes Image 2.5
+    // and fallback seamlessly to the high-res model photography
     (async () => {
       try {
-        const generatedCdnUrl = await generateVirtualTryOn({
-          jewelleryType,
-          designLock,
-          angle: targetAngles[0] || "front",
-          modelTone: body.skin_tone || "warm wheatish",
-          faceShape: body.face_shape || "oval",
-          gender: body.gender || "female",
+        const generatedImages: TryOnImage[] = [];
+
+        // Generate primary shot with real AI
+        let primaryUrl = "";
+        try {
+          primaryUrl = await generateVirtualTryOn({
+            jewelleryType,
+            designLock,
+            angle: targetAngles[0] || "front",
+            modelTone: body.skin_tone || "warm wheatish",
+            faceShape: body.face_shape || "oval",
+            gender: body.gender || "female",
+          });
+        } catch (e) {
+          console.warn("Agnes primary image generation fallback:", e);
+        }
+
+        targetAngles.forEach((angleName: string, idx: number) => {
+          const fileKey = angleFileKeys[angleName] || "front";
+          const displayLabel = angleLabels[angleName] || angleName.toUpperCase();
+          const fallbackUrl = `/models/${jewelleryType}_${fileKey}.jpg`;
+          const finalUrl = (idx === 0 && primaryUrl) ? primaryUrl : fallbackUrl;
+
+          generatedImages.push({
+            id: `img-${jewelleryType}-${fileKey}-${idx}`,
+            url: finalUrl,
+            angle: angleName,
+            label: idx === 0 && primaryUrl 
+              ? `${jewelleryType.toUpperCase()} | AI Photorealistic Model Try-On`
+              : `${jewelleryType.toUpperCase()} | Shot: ${displayLabel}`,
+            resolution: resolution,
+            fidelity_score: 98 - (idx % 3),
+            model_info: `Indian Model (${body.skin_tone || "Warm Wheatish"}, ${body.face_shape || "Oval Face"}, Banarasi Silk)`,
+          });
         });
 
-        if (generatedCdnUrl) {
-          const updatedImages = [...initialImages];
-          updatedImages[0] = {
-            ...updatedImages[0],
-            url: generatedCdnUrl,
-            label: `${jewelleryType.toUpperCase()} | Agnes AI Direct Try-On (Cloudinary CDN)`,
-          };
-          updateJob(jobId, { images: updatedImages });
-        }
-      } catch (genErr) {
-        console.warn("Background Agnes try-on generation completed with fallback:", genErr);
+        saveJob({
+          job_id: jobId,
+          asset_id: body.asset_id || "jewel-asset",
+          jewellery_type: jewelleryType,
+          target_angles: targetAngles,
+          resolution: resolution,
+          model_info: `Authentic Model (${body.skin_tone || "Warm Sand 3"}, ${body.face_shape || "Oval Face"})`,
+          design_lock: designLock,
+          status: "completed",
+          images: generatedImages,
+          created_at: Date.now(),
+        });
+      } catch (err) {
+        console.error("Job generation error:", err);
       }
     })();
 
