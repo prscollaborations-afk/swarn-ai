@@ -13,9 +13,9 @@ except ImportError:
     pass
 
 def init_cloudinary():
-    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME")
-    api_key = os.getenv("CLOUDINARY_API_KEY")
-    api_secret = os.getenv("CLOUDINARY_API_SECRET")
+    cloud_name = os.getenv("CLOUDINARY_CLOUD_NAME") or "azbkujpd"
+    api_key = os.getenv("CLOUDINARY_API_KEY") or "595923171546264"
+    api_secret = os.getenv("CLOUDINARY_API_SECRET") or "2wl3pmc1ZMEbj2pa6NF-mNxa8kE"
 
     if CLOUDINARY_AVAILABLE and cloud_name and api_key and api_secret:
         cloudinary.config(

@@ -1,4 +1,5 @@
 import io
+import os
 import time
 from typing import Dict, Any, Optional
 from PIL import Image, ImageDraw, ImageFilter, ImageOps, ImageEnhance

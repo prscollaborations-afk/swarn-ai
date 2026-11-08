@@ -50,11 +50,12 @@ async def upload_asset(file: UploadFile = File(...)):
     try:
         from app.core.cloudinary_service import upload_image_to_cloudinary
         c_res = upload_image_to_cloudinary(content, folder="aabhushan/assets", public_id=asset_id)
-        if c_res:
+        if c_res and c_res.get("secure_url"):
             cloudinary_url = c_res.get("secure_url")
             asset_data["cloudinary_url"] = cloudinary_url
-    except Exception:
-        pass
+            asset_data["url"] = cloudinary_url
+    except Exception as e:
+        logger.warning(f"Cloudinary upload asset failed: {e}")
 
     ASSETS_CACHE[asset_id] = {
         "data": asset_data,

@@ -24,7 +24,79 @@ class AgnesProvider(AIProvider):
         self.base_url = "https://apihub.agnes-ai.com/v1"
 
     async def analyze(self, image_bytes: bytes, mime_type: str = "image/jpeg") -> AnalysisResult:
-        # Gemini Vision analyzes stones, link patterns, metal color
+        """Analyze jewellery piece using multimodal LLM vision to extract real craftsmanship details."""
+        try:
+            import base64
+            b64 = base64.b64encode(image_bytes).decode("utf-8")
+            prompt = (
+                "You are an Indian master jewellery appraiser and gemologist.\n"
+                "Carefully inspect this image of a jewellery item.\n"
+                "Return JSON ONLY with the following exact keys:\n"
+                "{\n"
+                "  \"jewellery_type\": \"necklace\" or \"earrings\" or \"ring\" or \"bangles\",\n"
+                "  \"metal_colour\": \"e.g. 22K Yellow Gold, Rose Gold, Platinum\",\n"
+                "  \"stones\": \"e.g. Kundan Polki, Rubies, Emeralds, Solitaire Diamond, Plain Gold\",\n"
+                "  \"pattern\": \"e.g. Traditional Meenakari Jhumka with Pearl Hangings or Handcrafted Temple Haar\",\n"
+                "  \"size_hint\": \"small\" or \"medium\" or \"large\" or \"statement\",\n"
+                "  \"wear_location\": \"earlobes\" or \"neck\" or \"fingers\" or \"wrist\",\n"
+                "  \"quality_score\": 95,\n"
+                "  \"quality_tips\": \"Clear lighting with sharp craftsmanship definition\",\n"
+                "  \"count\": 1,\n"
+                "  \"design_lock\": \"One detailed sentence preserving every curve, motif, stone setting, and color for try-on.\"\n"
+                "}"
+            )
+            headers = {
+                "Authorization": f"Bearer {self.api_key}",
+                "Content-Type": "application/json"
+            }
+            payload = {
+                "model": "agnes-3.0-flash",
+                "messages": [
+                    {
+                        "role": "user",
+                        "content": [
+                            {"type": "text", "text": prompt},
+                            {"type": "image_url", "image_url": {"url": f"data:{mime_type};base64,{b64}"}}
+                        ]
+                    }
+                ],
+                "response_format": {"type": "json_object"}
+            }
+            resp = requests.post(f"{self.base_url}/chat/completions", headers=headers, json=payload, timeout=25)
+            if resp.status_code == 200:
+                raw_txt = resp.json()["choices"][0]["message"]["content"]
+                data = json.loads(raw_txt)
+                j_type = str(data.get("jewellery_type", "necklace")).lower()
+                if "ear" in j_type or "jhumk" in j_type:
+                    j_type = "earrings"
+                    data["wear_location"] = "earlobes"
+                elif "ring" in j_type:
+                    j_type = "ring"
+                    data["wear_location"] = "fingers"
+                elif "bangle" in j_type or "kada" in j_type:
+                    j_type = "bangles"
+                    data["wear_location"] = "wrist"
+                elif "neck" in j_type or "haar" in j_type or "choker" in j_type or "chain" in j_type:
+                    j_type = "necklace"
+                    data["wear_location"] = "neck"
+
+                return AnalysisResult(
+                    jewellery_type=j_type,
+                    confidence=0.99,
+                    metal_colour=str(data.get("metal_colour", "22K Yellow Gold")),
+                    stones=str(data.get("stones", "Authentic Polki")),
+                    pattern=str(data.get("pattern", "Handcrafted traditional craftsmanship")),
+                    size_hint=str(data.get("size_hint", "statement")),
+                    wear_location=str(data.get("wear_location", "neck")),
+                    quality_score=int(data.get("quality_score", 95)),
+                    quality_tips=str(data.get("quality_tips", "Authentic jewellery craft with hallmarked finish")),
+                    count=int(data.get("count", 1)),
+                    design_lock=str(data.get("design_lock", f"Authentic {j_type} with handcrafted motifs")),
+                )
+        except Exception as e:
+            logger.warning(f"Agnes vision analysis fallback: {e}")
+
+        # Fallback to Gemini Provider
         from app.ai.gemini_provider import GeminiProvider
         gemini = GeminiProvider(api_key=settings.GEMINI_API_KEY)
         return await gemini.analyze(image_bytes, mime_type)

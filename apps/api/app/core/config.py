@@ -27,6 +27,9 @@ class Settings(BaseSettings):
 
     GEMINI_API_KEY: Optional[str] = None
     AGNES_API_KEY: Optional[str] = None
+    CLOUDINARY_CLOUD_NAME: Optional[str] = "azbkujpd"
+    CLOUDINARY_API_KEY: Optional[str] = "595923171546264"
+    CLOUDINARY_API_SECRET: Optional[str] = "2wl3pmc1ZMEbj2pa6NF-mNxa8kE"
     GEMINI_IMAGE_MODEL: str = "gemini-3.1-flash-image-preview"
     GEMINI_PREVIEW_MODEL: str = "gemini-2.5-flash-image"
     GEMINI_TEXT_MODEL: str = "gemini-3.5-flash-lite"

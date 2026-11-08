@@ -80,10 +80,20 @@ async def process_job_pipeline(job_id: str):
             img_id = str(uuid.uuid4())
             IMAGES_CACHE[img_id] = gen.image_bytes
 
+            # Upload generated AI image directly to Cloudinary
+            img_url = f"/api/backend/jobs/images/{img_id}/content"
+            try:
+                from app.core.cloudinary_service import upload_image_to_cloudinary
+                c_res = upload_image_to_cloudinary(gen.image_bytes, folder="aabhushan/tryons", public_id=img_id)
+                if c_res and c_res.get("secure_url"):
+                    img_url = c_res.get("secure_url")
+            except Exception as e:
+                pass
+
             results.append({
                 "id": img_id,
                 "angle": angle,
-                "url": f"/api/backend/jobs/images/{img_id}/content",
+                "url": img_url,
                 "fidelity_score": gen.fidelity_score,
                 "fidelity_report": gen.fidelity_report,
                 "resolution": job["resolution"],
