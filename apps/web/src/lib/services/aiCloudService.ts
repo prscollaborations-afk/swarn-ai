@@ -183,21 +183,37 @@ export async function generateVirtualTryOn(options: {
   const { jewelleryType, designLock, angle, modelTone = "warm wheatish", faceShape = "oval", gender = "female" } = options;
 
   let angleDesc = "front symmetrical high-fashion catalogue portrait shot, chest-up view";
-  if (angle === "closeup") angleDesc = "extreme macro close-up detail shot focused razor-sharp on the jewellery craftsmanship";
-  else if (angle === "left") angleDesc = "left 45-degree angle regal side-profile portrait";
-  else if (angle === "right") angleDesc = "right 45-degree angle three-quarter high-fashion portrait";
+  let wearTarget = "";
+  let garment = "";
+  let strictNegativeConstraint = "";
 
-  let wearTarget = "wearing EXACTLY ONE SINGLE standalone piece draping gracefully over the collarbone and upper chest with soft, realistic contact shadows. Zero multiple layers, zero extra necklaces, only ONE SINGLE chain";
-  if (jewelleryType === "earrings") wearTarget = "wearing exactly ONE matching pair adorned and hanging naturally on both earlobes";
-  else if (jewelleryType === "ring") wearTarget = "wearing exactly ONE single statement ring gracefully on the finger of an elegant manicured hand";
-  else if (jewelleryType === "bangles") wearTarget = "wearing the handcrafted bangles fitted gracefully on the wrist";
-
-  const garment = gender === "male" 
-    ? "bare neck and shoulders or simple classic kurta" 
-    : "royal silk saree with elegant open neckline";
+  if (jewelleryType === "earrings") {
+    angleDesc = "front symmetrical beauty portrait, ears clearly visible and hair tucked back behind ears, head and neck framing";
+    if (angle === "left") angleDesc = "left 45-degree angle profile shot showcasing the left ear and earring in razor-sharp focus";
+    if (angle === "right") angleDesc = "right 45-degree angle profile shot showcasing the right ear and earring in razor-sharp focus";
+    if (angle === "closeup") angleDesc = "extreme macro close-up detail shot focused sharply on the earlobe and earring craftsmanship";
+    
+    wearTarget = "wearing ONLY the matching pair of earrings hanging naturally on the earlobes. Clean bare neck with NO necklace, NO chain, NO collar jewellery whatsoever";
+    garment = gender === "male" ? "simple classic collarless kurta" : "elegant high-fashion silk saree with bare unadorned neckline";
+    strictNegativeConstraint = "ABSOLUTELY NO NECKLACE, NO CHAINS, NO CHOKER, NO PENDANT. The neck and chest are completely bare of jewellery. The only jewellery is the earrings.";
+  } else if (jewelleryType === "necklace") {
+    wearTarget = "wearing EXACTLY ONE SINGLE standalone necklace draping gracefully over the collarbone and upper chest with soft realistic contact shadows. Zero multiple layers, zero extra necklaces, only ONE SINGLE chain";
+    garment = gender === "male" ? "bare neck and shoulders or simple classic kurta" : "royal silk saree with elegant open neckline";
+    strictNegativeConstraint = "Zero multiple chains, zero layered necklaces. Exactly one single standalone piece.";
+  } else if (jewelleryType === "ring") {
+    angleDesc = "artistic hand-to-face portrait or manicured hand pose";
+    wearTarget = "wearing exactly ONE single statement ring gracefully on the finger of an elegant manicured hand";
+    garment = "minimalist luxury silk attire";
+    strictNegativeConstraint = "Zero other rings, zero wristwatches.";
+  } else if (jewelleryType === "bangles") {
+    angleDesc = "high-fashion portrait with wrist gracefully positioned";
+    wearTarget = "wearing the handcrafted bangles fitted gracefully on the wrist";
+    garment = "minimalist luxury silk attire";
+    strictNegativeConstraint = "Zero additional armbands.";
+  }
 
   // Craft high-precision prompt enforcing exact physical replication of design_lock
-  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, ${garment}) ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. It must be strictly ONE SINGLE continuous strand with identical link weave, scale, thickness, and gemstone finish with zero stylistic hallucination and zero extra layered strands. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${angleDesc}.`;
+  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, ${garment}) ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${strictNegativeConstraint} ${angleDesc}.`;
 
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/images/generations`, {
     method: "POST",
