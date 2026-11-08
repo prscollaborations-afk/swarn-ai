@@ -187,13 +187,17 @@ export async function generateVirtualTryOn(options: {
   else if (angle === "left") angleDesc = "left 45-degree angle regal side-profile portrait";
   else if (angle === "right") angleDesc = "right 45-degree angle three-quarter high-fashion portrait";
 
-  let wearTarget = "draping gracefully over her collarbone and upper chest with soft, realistic contact shadows";
-  if (jewelleryType === "earrings") wearTarget = "adorned and hanging naturally on her earlobes";
-  else if (jewelleryType === "ring") wearTarget = "worn gracefully on the finger of an elegant manicured hand";
-  else if (jewelleryType === "bangles") wearTarget = "worn around the wrist of an elegant hand";
+  let wearTarget = "wearing EXACTLY ONE SINGLE standalone piece draping gracefully over the collarbone and upper chest with soft, realistic contact shadows. Zero multiple layers, zero extra necklaces, only ONE SINGLE chain";
+  if (jewelleryType === "earrings") wearTarget = "wearing exactly ONE matching pair adorned and hanging naturally on both earlobes";
+  else if (jewelleryType === "ring") wearTarget = "wearing exactly ONE single statement ring gracefully on the finger of an elegant manicured hand";
+  else if (jewelleryType === "bangles") wearTarget = "wearing the handcrafted bangles fitted gracefully on the wrist";
+
+  const garment = gender === "male" 
+    ? "bare neck and shoulders or simple classic kurta" 
+    : "royal silk saree with elegant open neckline";
 
   // Craft high-precision prompt enforcing exact physical replication of design_lock
-  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, wearing a royal silk saree) wearing authentic ${jewelleryType} ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. The link weave, scale, thickness, and gemstone finish of the jewellery must be completely identical to the real piece with zero stylistic hallucination. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${angleDesc}.`;
+  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, ${garment}) ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. It must be strictly ONE SINGLE continuous strand with identical link weave, scale, thickness, and gemstone finish with zero stylistic hallucination and zero extra layered strands. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${angleDesc}.`;
 
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/images/generations`, {
     method: "POST",
