@@ -95,6 +95,9 @@ export default function StudioPage() {
 
     setJewelFile(file);
     setJewelPreview(URL.createObjectURL(file));
+    // Clear previous generation result so user never sees old mismatched image
+    setActiveImage(null);
+    setGeneratedImages([]);
     // Immediately set a client fallback asset ID so the button enables instantly!
     const localFallbackId = "jewel-asset-" + Date.now();
     setJewelAssetId(localFallbackId);
