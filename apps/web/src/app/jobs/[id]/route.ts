@@ -3,19 +3,6 @@ import { getJob } from "../jobsRegistry";
 
 export async function GET(req: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const backendUrl = process.env.BACKEND_URL || process.env.NEXT_PUBLIC_API_URL;
-    if (backendUrl) {
-      try {
-        const res = await fetch(`${backendUrl.replace(/\/$/, "")}/jobs/${params.id}`);
-        if (res.ok) {
-          const remoteData = await res.json();
-          if (remoteData?.data?.images && remoteData.data.images.length > 0) {
-            return NextResponse.json(remoteData);
-          }
-        }
-      } catch (e) {}
-    }
-
     const job = getJob(params.id);
     let jType = job?.jewellery_type?.toLowerCase() || "necklace";
     if (!["earrings", "necklace", "ring", "bangles"].includes(jType)) {
@@ -23,6 +10,18 @@ export async function GET(req: NextRequest, { params }: { params: { id: string }
       else if (jType.includes("ring")) jType = "ring";
       else if (jType.includes("bangle") || jType.includes("kada")) jType = "bangles";
       else jType = "necklace";
+    }
+
+    // If job was saved in registry with images (including potential Agnes generated CDN URL), return them!
+    if (job?.images && job.images.length > 0) {
+      return NextResponse.json({
+        success: true,
+        data: {
+          job_id: params.id,
+          status: "completed",
+          images: job.images,
+        },
+      });
     }
 
     const anglesToGenerate = (job?.target_angles && job.target_angles.length > 0)
