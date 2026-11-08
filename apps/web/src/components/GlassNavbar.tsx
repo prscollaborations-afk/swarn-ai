@@ -100,17 +100,17 @@ export default function GlassNavbar() {
           }`}
           aria-label="Main Navigation"
         >
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-full bg-gradient-to-tr from-ruby-500 via-gold-400 to-amber-300 flex items-center justify-center shadow-lg shadow-gold-500/20 group-hover:scale-105 transition-transform">
-              <Sparkles className="w-4 h-4 text-slate-950 fill-slate-950" />
-            </div>
-            <div className="flex flex-col">
-              <span className="font-heading font-bold text-lg md:text-xl tracking-wide bg-gradient-to-r from-amber-200 via-yellow-100 to-white bg-clip-text text-transparent">
-                आभूषण <span className="text-amber-300 font-sans text-sm tracking-normal">AI</span>
-              </span>
-            </div>
-          </Link>
+            {/* Brand Logo */}
+            <Link href="/" className="flex items-center gap-2.5 group">
+              <div className="w-8 h-8 rounded-full bg-amber-400 text-slate-950 flex items-center justify-center font-bold text-xs shadow-md">
+                <Crown className="w-4 h-4 text-slate-950" />
+              </div>
+              <div className="flex flex-col">
+                <span className="font-heading font-semibold text-lg md:text-xl tracking-normal text-amber-100">
+                  Aabhushan <span className="text-amber-400 text-xs tracking-normal font-sans">Haute Atelier · Dubai</span>
+                </span>
+              </div>
+            </Link>
 
           {/* Nav Items (Desktop) */}
           <div className="hidden lg:flex items-center gap-1.5 bg-black/20 p-1 rounded-full border border-white/5">
