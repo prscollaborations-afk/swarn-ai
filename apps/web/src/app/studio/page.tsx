@@ -17,7 +17,6 @@ import {
   Wrench,
   AlertTriangle,
   Lock,
-  Crown,
 } from "lucide-react";
 
 const JEWELLERY_TYPES = [
@@ -271,14 +270,14 @@ export default function StudioPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 border-b border-white/10 pb-6">
         <div>
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-amber-400/10 border border-amber-400/20 text-amber-300 text-xs font-semibold mb-2">
-            <Crown className="w-3.5 h-3.5" />
-            <span>Dubai Haute Horlogerie & High Jewellery Atelier</span>
+            <Sparkles className="w-3.5 h-3.5" />
+            <span>AI Virtual Try-On Studio</span>
           </div>
-          <h1 className="font-heading text-3xl sm:text-4xl font-semibold text-amber-100">
-            Virtual Try-On Atelier · Dubai & GCC
+          <h1 className="font-heading text-3xl sm:text-4xl font-bold text-amber-100">
+            Aabhushan Try-On Platform
           </h1>
           <p className="text-xs text-neutral-300 mt-1">
-            Private virtual fitting for Gold Souk boutiques, DIFC ateliers, and royal bespoke commissions.
+            Upload your jewellery photo. Try it on an authentic AI model OR upload your own photo to wear it instantly.
           </p>
         </div>
 
@@ -288,16 +287,16 @@ export default function StudioPage() {
           <div className="inline-flex rounded-full p-1 bg-black/40 border border-white/10">
             <button
               onClick={() => setResolution("HD")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold focus-visible:ring-1 focus-visible:ring-amber-400 transition-colors ${
-                resolution === "HD" ? "bg-amber-400 text-black shadow font-bold" : "text-neutral-400 hover:text-white"
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                resolution === "HD" ? "bg-amber-400 text-black shadow" : "text-neutral-400"
               }`}
             >
               HD (1 Credit)
             </button>
             <button
               onClick={() => setResolution("4K")}
-              className={`px-3 py-1 rounded-full text-xs font-semibold focus-visible:ring-1 focus-visible:ring-amber-400 transition-colors ${
-                resolution === "4K" ? "bg-amber-400 text-black shadow font-bold" : "text-neutral-400 hover:text-white"
+              className={`px-3 py-1 rounded-full text-xs font-semibold ${
+                resolution === "4K" ? "bg-amber-400 text-black shadow" : "text-neutral-400"
               }`}
             >
               4K Ultra (2 Credits)
@@ -311,9 +310,9 @@ export default function StudioPage() {
         {/* Left Column: Input Steps */}
         <div className="lg:col-span-5 space-y-6">
           {/* Step 1: Jewellery Category Selector (4+ types) */}
-          <div className="atelier-well p-6 space-y-3">
-            <span className="text-xs font-medium text-amber-300 block">
-              Step 1: Choose jewellery category
+          <div className="glass-panel p-6 space-y-3">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Step 1: Choose Jewellery Category
             </span>
             <div className="grid grid-cols-2 gap-2">
               {JEWELLERY_TYPES.map((type) => {
@@ -322,14 +321,14 @@ export default function StudioPage() {
                   <button
                     key={type.id}
                     onClick={() => setSelectedJewelType(type.id)}
-                    className={`p-3 rounded-xl text-left border transition-colors focus-visible:ring-1 focus-visible:ring-amber-400 ${
+                    className={`p-3 rounded-xl text-left border transition-all ${
                       active
-                        ? "bg-amber-400/15 border-amber-400 text-amber-100 ring-1 ring-amber-400/40"
-                        : "bg-black/20 border-white/10 text-neutral-400 hover:text-white"
+                        ? "bg-amber-400/20 border-amber-400 text-amber-100 ring-1 ring-amber-400/50"
+                        : "bg-white/5 border-white/10 text-neutral-400 hover:text-white"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-semibold">{type.name}</span>
+                      <span className="text-xs font-bold">{type.name}</span>
                       {active && <Check className="w-3.5 h-3.5 text-amber-400" />}
                     </div>
                     <span className="text-[10px] text-neutral-400 block mt-0.5">
@@ -342,21 +341,21 @@ export default function StudioPage() {
           </div>
 
           {/* Step 2: Upload Jewellery Photo */}
-          <div className="atelier-well p-6 space-y-4">
+          <div className="glass-panel p-6 space-y-4">
             <div className="flex items-center justify-between">
-              <span className="text-xs font-medium text-amber-300 block">
-                Step 2: Upload jewellery piece
+              <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+                Step 2: Upload Jewellery Photo
               </span>
               {analysis && (
-                <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
-                  Hallmark fidelity: {analysis.quality_score}/100
+                <span className="text-[10px] text-emerald-400 font-bold bg-emerald-500/10 px-2 py-0.5 rounded-full border border-emerald-500/20">
+                  Quality: {analysis.quality_score}/100
                 </span>
               )}
             </div>
 
             <div
               onClick={() => jewelInputRef.current?.click()}
-              className="border border-dashed border-amber-400/30 hover:border-amber-400/80 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-black/20 group"
+              className="border-2 border-dashed border-white/20 hover:border-amber-400/50 rounded-2xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-colors bg-white/5 group"
             >
               <input
                 ref={jewelInputRef}
@@ -372,18 +371,18 @@ export default function StudioPage() {
                     alt="Uploaded Jewellery"
                     className="w-full h-full object-contain"
                   />
-                  <div className="absolute inset-0 bg-black/50 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-medium text-amber-200">
-                    Replace jewellery piece
+                  <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-opacity text-xs font-medium text-white">
+                    Click to change jewellery photo
                   </div>
                 </div>
               ) : (
                 <div className="space-y-2 py-4">
-                  <UploadCloud className="w-8 h-8 text-amber-300 mx-auto" />
-                  <p className="text-sm font-semibold text-amber-100">
-                    Upload {selectedJewelType} photograph
+                  <UploadCloud className="w-10 h-10 text-amber-300 mx-auto group-hover:scale-110 transition-transform" />
+                  <p className="text-sm font-semibold text-white">
+                    Upload photo of {selectedJewelType.toUpperCase()}
                   </p>
-                  <p className="text-xs text-neutral-400">
-                    Studio or vault capture on neutral background
+                  <p className="text-xs text-neutral-400 font-light">
+                    Clicks of pure jewellery on any surface or background
                   </p>
                 </div>
               )}
@@ -391,25 +390,25 @@ export default function StudioPage() {
 
             {/* AI Vision Analysis Details */}
             {analysis && (
-              <div className="p-3.5 rounded-xl bg-black/40 border border-white/10 space-y-1.5 text-xs">
+              <div className="p-3.5 rounded-xl bg-black/30 border border-white/10 space-y-1.5 text-xs">
                 <div className="flex justify-between items-center text-amber-200">
-                  <span className="font-semibold">Detected: {analysis.jewellery_type}</span>
-                  <span className="text-neutral-300">{analysis.metal_colour}</span>
+                  <span className="font-bold">Detected: {analysis.jewellery_type.toUpperCase()}</span>
+                  <span>{analysis.metal_colour}</span>
                 </div>
                 <p className="text-neutral-300 text-[11px]">
-                  <strong>Gemstones:</strong> {analysis.stones}
+                  <strong>Stones:</strong> {analysis.stones}
                 </p>
                 <div className="text-[10px] text-amber-300 bg-amber-500/10 p-2 rounded-lg border border-amber-500/20">
-                  <span className="font-semibold">Design lock:</span> {analysis.design_lock}
+                  <span className="font-bold">DESIGN LOCK (Preserved):</span> {analysis.design_lock}
                 </div>
               </div>
             )}
           </div>
 
           {/* Step 3: Choose Try-On Target (AI Model vs User's Own Photo) */}
-          <div className="atelier-well p-6 space-y-4">
-            <span className="text-xs font-medium text-amber-300 block">
-              Step 3: Wearer profile & skin tone
+          <div className="glass-panel p-6 space-y-4">
+            <span className="text-xs font-bold uppercase tracking-wider text-amber-400">
+              Step 3: Wear On (Who wears the jewellery?)
             </span>
 
             {/* Toggle Tabs */}
@@ -417,14 +416,14 @@ export default function StudioPage() {
               <button
                 type="button"
                 onClick={() => setModelMode("ai_model")}
-                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors focus-visible:ring-1 focus-visible:ring-amber-400 ${
+                className={`py-2 rounded-lg text-xs font-semibold flex items-center justify-center gap-1.5 transition-all ${
                   modelMode === "ai_model"
-                    ? "bg-amber-400 text-slate-950 font-bold"
+                    ? "bg-amber-400 text-slate-950 shadow"
                     : "text-neutral-400 hover:text-white"
                 }`}
               >
                 <Sparkles className="w-3.5 h-3.5" />
-                <span>Haute Atelier Model</span>
+                <span>AI Indian Model</span>
               </button>
 
               <button
@@ -583,22 +582,22 @@ export default function StudioPage() {
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
-              className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-colors flex items-center justify-center gap-2 mt-2 shadow-lg focus-visible:ring-2 focus-visible:ring-amber-400 ${
+              className={`w-full py-3.5 rounded-full font-bold text-xs uppercase tracking-wider transition-all flex items-center justify-center gap-2 mt-2 shadow-lg ${
                 jewelPreview
-                  ? "bg-amber-400 text-slate-950 hover:brightness-110 shadow-amber-500/20 cursor-pointer"
-                  : "bg-amber-400/80 text-slate-950/90 hover:brightness-105 shadow-amber-500/10 cursor-pointer"
+                  ? "bg-gradient-to-r from-amber-400 via-amber-500 to-yellow-500 text-slate-950 hover:brightness-110 shadow-amber-500/30 cursor-pointer"
+                  : "bg-gradient-to-r from-amber-400/80 via-amber-500/80 to-yellow-500/80 text-slate-950/80 hover:brightness-105 shadow-amber-500/20 cursor-pointer"
               } ${isGenerating ? "opacity-50 cursor-not-allowed" : ""}`}
             >
               {isGenerating ? (
                 <>
                   <Sparkles className="w-4 h-4 animate-spin text-black" />
-                  <span>Generating try-on…</span>
+                  <span>Generating AI Try-On...</span>
                 </>
               ) : (
                 <>
                   <Camera className="w-4 h-4 text-black" />
                   <span>
-                    Generate {selectedJewelType} try-on
+                    Generate {selectedJewelType.toUpperCase()} Try-On Now
                   </span>
                 </>
               )}
@@ -608,17 +607,17 @@ export default function StudioPage() {
 
         {/* Right Column: Live Try-On Stage & Lightbox */}
         <div className="lg:col-span-7 space-y-6">
-          <div className="atelier-card p-6 min-h-[680px] flex flex-col justify-between">
+          <div className="glass-panel p-6 min-h-[680px] flex flex-col justify-between">
             <div className="flex items-center justify-between border-b border-white/10 pb-4">
               <div className="flex items-center gap-2">
-                <Crown className="w-4 h-4 text-amber-400" />
-                <h3 className="font-heading text-lg font-semibold text-amber-100">
-                  Virtual fitting display · 24K fidelity
+                <ShieldCheck className="w-5 h-5 text-emerald-400" />
+                <h3 className="font-heading text-lg font-bold text-white">
+                  Virtual Try-On Result (Fidelity Verified)
                 </h3>
               </div>
               {activeImage && (
-                <span className="px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-semibold">
-                  Fidelity: {activeImage.fidelity_score}/100 (Pass)
+                <span className="px-3 py-0.5 rounded-full bg-emerald-500/20 border border-emerald-500/40 text-emerald-300 text-xs font-bold">
+                  Score: {activeImage.fidelity_score}/100 (Pass)
                 </span>
               )}
             </div>
@@ -626,14 +625,14 @@ export default function StudioPage() {
             {/* Main Stage Image */}
             <div className="my-6 flex-1 flex items-center justify-center">
               {activeImage ? (
-                <div className="relative group max-w-md w-full aspect-[3/4] rounded-2xl overflow-hidden border border-amber-400/30 shadow-2xl bg-black">
+                <div className="relative group max-w-md w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                   <img
                     src={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
                     alt="Try-On Result"
-                    className="w-full h-full object-contain bg-black"
+                    className="w-full h-full object-contain bg-[#0a0a0f]"
                   />
-                  <div className="absolute top-3 left-3 bg-black/80 px-3 py-1 rounded-full text-[11px] font-medium text-amber-300 border border-white/10">
-                    {selectedJewelType} · Shot: {activeImage.angle}
+                  <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-amber-300 border border-white/10">
+                    {selectedJewelType.toUpperCase()} | Shot: {activeImage.angle.toUpperCase()}
                   </div>
                   <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <a
@@ -641,7 +640,7 @@ export default function StudioPage() {
                       target="_blank"
                       rel="noopener noreferrer"
                       download={`aabhushan_${selectedJewelType}_${activeImage.angle}.png`}
-                      className="px-4 py-2 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg hover:brightness-110 focus-visible:ring-1 focus-visible:ring-amber-400"
+                      className="px-4 py-2 rounded-full bg-amber-400 text-slate-950 font-bold text-xs flex items-center gap-1.5 shadow-lg hover:brightness-110"
                     >
                       <Download className="w-3.5 h-3.5" />
                       <span>Download {activeImage.resolution}</span>

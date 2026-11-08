@@ -16,8 +16,8 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className="antialiased min-h-screen relative selection:bg-amber-400 selection:text-black">
-        {/* Luxury Dubai Atelier Background */}
-        <div className="dubai-atelier-bg" aria-hidden="true" />
+        {/* Dynamic mesh gradient background with ruby, gold, indigo glow */}
+        <div className="mesh-gradient-bg" aria-hidden="true" />
         
         {/* Glass sticky pill navbar */}
         <GlassNavbar />
