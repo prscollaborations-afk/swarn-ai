@@ -14,7 +14,7 @@ export const AGNES_CONFIG = {
 };
 
 /**
- * Upload a Buffer or Data URL to Cloudinary
+ * Upload a Buffer to Cloudinary
  */
 export async function uploadToCloudinary(
   fileBuffer: Buffer,
@@ -98,7 +98,7 @@ export async function uploadRemoteUrlToCloudinary(
 }
 
 /**
- * Run Agnes Vision AI to analyze jewellery and extract design lock
+ * Run Agnes Vision AI to analyze jewellery and extract microscopic fidelity design lock
  */
 export async function analyzeJewelleryWithAgnes(
   fileBuffer: Buffer,
@@ -115,16 +115,22 @@ export async function analyzeJewelleryWithAgnes(
   const base64Data = fileBuffer.toString("base64");
   const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
-  const prompt = `You are a high-jewelry gemologist and visual analyst for Swarn/Aabhushan AI.
-Analyze this image of jewellery. Return ONLY a valid JSON markdown or raw JSON with the following structure:
+  const prompt = `You are a world-class high-jewelry master gemologist and 3D jewellery CAD engineer for Haute Atelier Swarn/Aabhushan AI.
+Analyze this jewellery product photo with microscopic precision.
+Extract every engineering detail:
+1. Exact specific link / motif construction: For chains, strictly differentiate Cuban curb links, heavy double-curb braided mesh, Figaro, Mariner, Franco, rope, or tennis links.
+2. Link geometry & surface finish: Flat diamond-cut facets vs rounded sub-links, interlocking density, gauge/thickness (e.g. 6mm-10mm heavy gauge), bead-milled texture or mirror-polish 22K yellow gold.
+3. Gemstone details: Stone cuts, prong/bezel settings, exact gemstone color, count, and drop motifs.
+
+Return ONLY a valid raw JSON object with the following structure:
 {
   "jewellery_type": "necklace" | "earrings" | "ring" | "bangles",
-  "metal_colour": "e.g. 22K Yellow Gold, Rose Gold, Platinum",
-  "stones": "e.g. Kundan, Emerald, Solitaire Diamond, Uncut Polki, or Plain Gold",
-  "pattern": "e.g. Traditional Jhumka, Filigree Choker, Solitaire Band, Temple Kada",
-  "wear_location": "earlobes" | "neck and decolletage" | "fingers" | "wrists",
+  "metal_colour": "e.g. 22K Solid Yellow Gold (or Rose Gold / Platinum)",
+  "stones": "e.g. Plain Gold (No stones) or Emerald & Uncut Polki Diamonds",
+  "pattern": "Exact specific pattern e.g. Heavy Double-Curb Mesh Braided Gold Chain or Filigree Bell Jhumkas",
+  "wear_location": "earlobes" | "neck and collarbone" | "fingers" | "wrists",
   "quality_score": 98,
-  "design_lock": "A detailed 1-2 sentence description specifying stone cuts, motif, silhouette, and finish to preserve in try-on"
+  "design_lock": "A dense, high-fidelity 2-sentence description explicitly commanding the exact link weave, thickness/gauge, silhouette, and metal luster so the AI generator renders an identical piece without deviating."
 }`;
 
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/chat/completions`, {
@@ -156,7 +162,6 @@ Analyze this image of jewellery. Return ONLY a valid JSON markdown or raw JSON w
   const json = await res.json();
   const rawContent = json.choices?.[0]?.message?.content || "";
   
-  // Extract JSON from response
   const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
   if (jsonMatch) {
     return JSON.parse(jsonMatch[0]);
@@ -177,17 +182,18 @@ export async function generateVirtualTryOn(options: {
 }): Promise<string> {
   const { jewelleryType, designLock, angle, modelTone = "warm wheatish", faceShape = "oval", gender = "female" } = options;
 
-  let angleDesc = "front symmetrical high-fashion catalogue portrait shot";
-  if (angle === "closeup") angleDesc = "macro close-up detail shot focused sharply on the jewellery";
+  let angleDesc = "front symmetrical high-fashion catalogue portrait shot, chest-up view";
+  if (angle === "closeup") angleDesc = "extreme macro close-up detail shot focused razor-sharp on the jewellery craftsmanship";
   else if (angle === "left") angleDesc = "left 45-degree angle regal side-profile portrait";
   else if (angle === "right") angleDesc = "right 45-degree angle three-quarter high-fashion portrait";
 
-  let wearTarget = "on the neck and collarbone";
-  if (jewelleryType === "earrings") wearTarget = "adorned on the earlobes";
-  else if (jewelleryType === "ring") wearTarget = "worn gracefully on the finger of an elegant hand";
+  let wearTarget = "draping gracefully over her collarbone and upper chest with soft, realistic contact shadows";
+  if (jewelleryType === "earrings") wearTarget = "adorned and hanging naturally on her earlobes";
+  else if (jewelleryType === "ring") wearTarget = "worn gracefully on the finger of an elegant manicured hand";
   else if (jewelleryType === "bangles") wearTarget = "worn around the wrist of an elegant hand";
 
-  const prompt = `Ultra-photorealistic 8k editorial Vogue jewellery campaign photograph of an elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape) wearing ${jewelleryType} ${wearTarget}. The jewellery must strictly feature: ${designLock}. Symmetrical lighting, luxury boutique atelier background, high-jewelry editorial aesthetic, 8k resolution, ${angleDesc}.`;
+  // Craft high-precision prompt enforcing exact physical replication of design_lock
+  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, wearing a royal silk saree) wearing authentic ${jewelleryType} ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. The link weave, scale, thickness, and gemstone finish of the jewellery must be completely identical to the real piece with zero stylistic hallucination. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${angleDesc}.`;
 
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/images/generations`, {
     method: "POST",
@@ -214,7 +220,6 @@ export async function generateVirtualTryOn(options: {
     throw new Error("No image URL returned by Agnes image generator");
   }
 
-  // Upload into Cloudinary so it is permanent and fast CDN delivered
   try {
     const cdnUrl = await uploadRemoteUrlToCloudinary(generatedUrl, "aabhushan_tryon");
     return cdnUrl;
@@ -223,4 +228,3 @@ export async function generateVirtualTryOn(options: {
     return generatedUrl;
   }
 }
-
