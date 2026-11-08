@@ -164,8 +164,22 @@ export default function StudioPage() {
 
   // Trigger Try-On Generation
   const handleGenerate = async () => {
-    // If not logged in yet, prompt global single-entrance Auth modal
-    if (!isUserLoggedIn) {
+    // Check login dynamically from localStorage or state
+    let loggedIn = isUserLoggedIn;
+    if (!loggedIn && typeof window !== "undefined") {
+      try {
+        const uStr = localStorage.getItem("aabhushan_user");
+        if (uStr) {
+          const u = JSON.parse(uStr);
+          if (u.status === "active" || (typeof u.credits === "number" && u.credits > 0)) {
+            loggedIn = true;
+            setIsUserLoggedIn(true);
+          }
+        }
+      } catch {}
+    }
+
+    if (!loggedIn) {
       if (typeof window !== "undefined") {
         window.dispatchEvent(new CustomEvent("open-auth-modal"));
       }

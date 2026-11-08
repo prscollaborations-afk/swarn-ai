@@ -24,3 +24,4 @@ export function saveJob(job: JobRecord) {
 export function getJob(jobId: string): JobRecord | undefined {
   return jobsRegistry.get(jobId);
 }
+
