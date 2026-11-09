@@ -24,6 +24,7 @@ const JEWELLERY_TYPES = [
   { id: "ring", name: "Ring (अंगूठी)", desc: "Solitaire, cocktail, band rings" },
   { id: "earrings", name: "Earrings / Jhumka", desc: "Jhumkas, studs, drops, chandbalis" },
   { id: "bangles", name: "Bangles / Kada", desc: "Gold kadas, polki bangles, bracelets" },
+  { id: "full_set", name: "Full Set (संपूर्ण आभूषण सेट)", desc: "Bridal matching necklace + earrings + maang tikka" },
 ];
 
 const SKIN_TONES = [
@@ -82,6 +83,11 @@ export default function StudioPage() {
     "closeup",
   ]);
   const [resolution, setResolution] = useState<"HD" | "4K">("HD");
+
+  // Client Custom Watermark Branding
+  const [enableWatermark, setEnableWatermark] = useState(false);
+  const [watermarkText, setWatermarkText] = useState("DAMAS JEWELLERS • DUBAI");
+  const [tryonEngine, setTryonEngine] = useState<"ai_vogue" | "direct_exact">("ai_vogue");
 
   // Job Execution State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -583,6 +589,40 @@ export default function StudioPage() {
               })}
             </div>
 
+            {/* Client Brand Watermark & Try-On Fidelity Options */}
+            <div className="pt-4 border-t border-white/10 space-y-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="w-4 h-4 text-amber-400" />
+                  <span className="text-xs font-bold text-neutral-200">Retailer Branding / Watermark</span>
+                </div>
+                <label className="relative inline-flex items-center cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={enableWatermark}
+                    onChange={(e) => setEnableWatermark(e.target.checked)}
+                    className="sr-only peer"
+                  />
+                  <div className="w-9 h-5 bg-white/10 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:rounded-full after:h-4 after:w-4 after:transition-all peer-checked:bg-amber-500"></div>
+                </label>
+              </div>
+
+              {enableWatermark && (
+                <div className="space-y-1.5 animate-fadeIn">
+                  <input
+                    type="text"
+                    value={watermarkText}
+                    onChange={(e) => setWatermarkText(e.target.value)}
+                    placeholder="Enter Store Name (e.g. MALABAR GOLD • DUBAI)"
+                    className="w-full px-3 py-1.5 bg-black/40 border border-amber-400/30 rounded-lg text-xs text-amber-200 placeholder-neutral-500 focus:outline-none focus:border-amber-400"
+                  />
+                  <p className="text-[10px] text-neutral-400">
+                    Discreet gold brand hallmark badge will be applied to output lookbooks.
+                  </p>
+                </div>
+              )}
+            </div>
+
             <button
               onClick={handleGenerate}
               disabled={isGenerating}
@@ -638,6 +678,15 @@ export default function StudioPage() {
                   <div className="absolute top-3 left-3 bg-black/70 backdrop-blur-md px-3 py-1 rounded-full text-[11px] font-semibold text-amber-300 border border-white/10">
                     {selectedJewelType.toUpperCase()} | Shot: {activeImage.angle.toUpperCase()}
                   </div>
+
+                  {/* Optional Custom Brand Watermark Badge */}
+                  {enableWatermark && (
+                    <div className="absolute top-3 right-3 bg-black/80 backdrop-blur-md px-3.5 py-1 rounded-full border border-amber-400/40 text-[10px] font-bold text-amber-300 tracking-wider shadow-lg flex items-center gap-1.5">
+                      <Sparkles className="w-3 h-3 text-amber-400" />
+                      <span>{watermarkText}</span>
+                    </div>
+                  )}
+
                   <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <a
                       href={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}

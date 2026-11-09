@@ -68,7 +68,8 @@ export async function POST(req: NextRequest) {
         targetAngles.forEach((angleName: string, idx: number) => {
           const fileKey = angleFileKeys[angleName] || "front";
           const displayLabel = angleLabels[angleName] || angleName.toUpperCase();
-          const fallbackUrl = `/models/${jewelleryType}_${fileKey}.jpg`;
+          const fallbackType = jewelleryType === "full_set" ? "necklace" : jewelleryType;
+          const fallbackUrl = `/models/${fallbackType}_${fileKey}.jpg`;
           const finalUrl = (idx === 0 && primaryUrl) ? primaryUrl : fallbackUrl;
 
           generatedImages.push({

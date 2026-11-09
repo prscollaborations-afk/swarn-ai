@@ -6,6 +6,11 @@ export const CLOUDINARY_CONFIG = {
   apiSecret: process.env.CLOUDINARY_API_SECRET || "2wl3pmc1ZMEbj2pa6NF-mNxa8kE",
 };
 
+export const GEMINI_CONFIG = {
+  apiKey: process.env.GEMINI_API_KEY || "",
+  model: process.env.GEMINI_TEXT_MODEL || "gemini-3.5-flash-lite",
+};
+
 export const AGNES_CONFIG = {
   apiKey: process.env.AGNES_API_KEY || "sk-qiqKwM97UGhTdGALkmqwNZSQ06JDpAAZF34oThRst2AeuQzu",
   baseUrl: "https://apihub.agnes-ai.com/v1",
@@ -98,13 +103,13 @@ export async function uploadRemoteUrlToCloudinary(
 }
 
 /**
- * Run Agnes Vision AI to analyze jewellery and extract microscopic fidelity design lock
+ * Run Gemini 3.5 / Agnes Multimodal Vision AI to analyze jewellery and extract microscopic CAD design lock
  */
 export async function analyzeJewelleryWithAgnes(
   fileBuffer: Buffer,
   mimeType: string = "image/jpeg"
 ): Promise<{
-  jewellery_type: "necklace" | "earrings" | "ring" | "bangles" | string;
+  jewellery_type: "necklace" | "earrings" | "ring" | "bangles" | "full_set" | string;
   metal_colour: string;
   stones: string;
   pattern: string;
@@ -113,26 +118,73 @@ export async function analyzeJewelleryWithAgnes(
   design_lock: string;
 }> {
   const base64Data = fileBuffer.toString("base64");
-  const dataUrl = `data:${mimeType};base64,${base64Data}`;
 
   const prompt = `You are a world-class high-jewelry master gemologist and 3D jewellery CAD engineer for Haute Atelier Swarn/Aabhushan AI.
 Analyze this jewellery product photo with microscopic precision.
+Check if this is a single item or a complete bridal / jewellery set (necklace + earrings + maang tikka / bangles).
 Extract every engineering detail:
-1. Exact specific link / motif construction: For chains, strictly differentiate Cuban curb links, heavy double-curb braided mesh, Figaro, Mariner, Franco, rope, or tennis links.
+1. Exact specific link / motif construction: For chains, strictly differentiate Cuban curb links, heavy double-curb braided mesh, Figaro, Mariner, Franco, rope, or tennis links. For sets/jhumkas, detail flower rosette studs, drops, beads, and lattice openwork.
 2. Link geometry & surface finish: Flat diamond-cut facets vs rounded sub-links, interlocking density, gauge/thickness (e.g. 6mm-10mm heavy gauge), bead-milled texture or mirror-polish 22K yellow gold.
 3. Gemstone details: Stone cuts, prong/bezel settings, exact gemstone color, count, and drop motifs.
 
 Return ONLY a valid raw JSON object with the following structure:
 {
-  "jewellery_type": "necklace" | "earrings" | "ring" | "bangles",
+  "jewellery_type": "necklace" | "earrings" | "ring" | "bangles" | "full_set",
   "metal_colour": "e.g. 22K Solid Yellow Gold (or Rose Gold / Platinum)",
   "stones": "e.g. Plain Gold (No stones) or Emerald & Uncut Polki Diamonds",
-  "pattern": "Exact specific pattern e.g. Heavy Double-Curb Mesh Braided Gold Chain or Filigree Bell Jhumkas",
-  "wear_location": "earlobes" | "neck and collarbone" | "fingers" | "wrists",
+  "pattern": "Exact specific pattern e.g. Heavy Double-Curb Mesh Braided Gold Chain or Bridal Kundan Haar Set with Matching Jhumkas",
+  "wear_location": "earlobes" | "neck and collarbone" | "fingers" | "wrists" | "full neck, ears and forehead",
   "quality_score": 98,
   "design_lock": "A dense, high-fidelity 2-sentence description explicitly commanding the exact link weave, thickness/gauge, silhouette, and metal luster so the AI generator renders an identical piece without deviating."
 }`;
 
+  // Try Google Gemini 3.5 Flash-Lite Vision first
+  try {
+    const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`;
+    const geminiRes = await fetch(geminiUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt },
+              { inline_data: { mime_type: mimeType, data: base64Data } },
+            ],
+          },
+        ],
+        generationConfig: {
+          temperature: 0.1,
+          response_mime_type: "application/json",
+        },
+      }),
+    });
+
+    if (geminiRes.ok) {
+      const gData = await geminiRes.json();
+      const gText = gData.candidates?.[0]?.content?.parts?.[0]?.text;
+      if (gText) {
+        const jsonMatch = gText.match(/\{[\s\S]*\}/);
+        if (jsonMatch) {
+          const parsed = JSON.parse(jsonMatch[0]);
+          return {
+            jewellery_type: parsed.jewellery_type || "necklace",
+            metal_colour: parsed.metal_colour || "22K Yellow Gold",
+            stones: parsed.stones || "Plain Gold",
+            pattern: parsed.pattern || "Traditional Indian Jewellery",
+            wear_location: parsed.wear_location || "neck and collar",
+            quality_score: Number(parsed.quality_score) || 98,
+            design_lock: parsed.design_lock || parsed.pattern || "",
+          };
+        }
+      }
+    }
+  } catch (err) {
+    console.warn("Gemini vision analysis fallback to Agnes:", err);
+  }
+
+  // Fallback to Agnes Vision AI
+  const dataUrl = `data:${mimeType};base64,${base64Data}`;
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/chat/completions`, {
     method: "POST",
     headers: {
@@ -210,6 +262,11 @@ export async function generateVirtualTryOn(options: {
     wearTarget = "wearing the handcrafted bangles fitted gracefully on the wrist";
     garment = "minimalist luxury silk attire";
     strictNegativeConstraint = "Zero additional armbands.";
+  } else if (jewelleryType === "full_set" || jewelleryType === "set") {
+    angleDesc = "regal symmetrical bridal beauty portrait, full front chest-up view with hair parted for maang tikka, earlobes and neck fully framed";
+    wearTarget = "wearing the complete coordinated royal bridal jewellery ensemble: matching necklace draping the collarbone, matching jhumka earrings on both earlobes, and matching bridal maang tikka on forehead";
+    garment = "luxurious Banarasi silk bridal saree with deep red and gold zari embroidery";
+    strictNegativeConstraint = "Only wear the matching pieces from this unified set.";
   }
 
   // Craft high-precision prompt enforcing exact physical replication of design_lock
