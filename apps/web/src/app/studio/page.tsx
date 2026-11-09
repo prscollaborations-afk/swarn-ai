@@ -744,7 +744,7 @@ export default function StudioPage() {
               {activeImage ? (
                 <div className="relative group max-w-md w-full aspect-[3/4] rounded-2xl overflow-hidden border border-white/20 shadow-2xl bg-black">
                   <img
-                    src={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
+                    src={activeImage.url.startsWith("http") || activeImage.url.startsWith("data:") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
                     alt="Try-On Result"
                     className="w-full h-full object-contain bg-[#0a0a0f]"
                   />
@@ -762,7 +762,7 @@ export default function StudioPage() {
 
                   <div className="absolute bottom-3 right-3 flex items-center gap-2">
                     <a
-                      href={activeImage.url.startsWith("http") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
+                      href={activeImage.url.startsWith("http") || activeImage.url.startsWith("data:") ? activeImage.url : getApiUrl(activeImage.url.replace('/api/backend', ''))}
                       target="_blank"
                       rel="noopener noreferrer"
                       download={`aabhushan_${selectedJewelType}_${activeImage.angle}.png`}
@@ -812,7 +812,7 @@ export default function StudioPage() {
                       }`}
                     >
                       <img
-                        src={getApiUrl(img.url.replace('/api/backend', ''))}
+                        src={img.url.startsWith("http") || img.url.startsWith("data:") ? img.url : getApiUrl(img.url.replace('/api/backend', ''))}
                         alt={img.angle}
                         className="w-full h-full object-cover"
                       />

@@ -23,14 +23,19 @@ export async function createDirectExactTryOn(options: CompositeOptions): Promise
     if (!ctx) return reject(new Error("Cannot get 2d canvas context"));
 
     const modelImg = new Image();
-    modelImg.crossOrigin = "anonymous";
+    // Only set crossOrigin if external URL, not for relative paths like /models/...
+    if (modelUrl.startsWith("http")) {
+      modelImg.crossOrigin = "anonymous";
+    }
 
     modelImg.onload = () => {
       // 1. Draw photorealistic model
       ctx.drawImage(modelImg, 0, 0, 1024, 1024);
 
       const jewelImg = new Image();
-      jewelImg.crossOrigin = "anonymous";
+      if (jewelleryUrl.startsWith("http")) {
+        jewelImg.crossOrigin = "anonymous";
+      }
 
       jewelImg.onload = () => {
         // 2. Extract jewellery onto offscreen canvas for background removal
