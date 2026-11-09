@@ -18,7 +18,6 @@ import {
   AlertTriangle,
   Lock,
 } from "lucide-react";
-import { createDirectExactTryOn } from "@/lib/compositor";
 
 const JEWELLERY_TYPES = [
   { id: "necklace", name: "Necklace / Haar", desc: "Chokers, bridal haar, pendants" },
@@ -88,7 +87,6 @@ export default function StudioPage() {
   // Client Custom Watermark Branding
   const [enableWatermark, setEnableWatermark] = useState(false);
   const [watermarkText, setWatermarkText] = useState("DAMAS JEWELLERS • DUBAI");
-  const [tryonEngine, setTryonEngine] = useState<"ai_vogue" | "direct_exact">("direct_exact");
 
   // Job Execution State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -228,36 +226,6 @@ export default function StudioPage() {
     const currentAssetId = jewelAssetId || "jewel-asset-" + Date.now();
     setIsGenerating(true);
     setGeneratedImages([]);
-
-    // 100% DIRECT EXACT MATCH ENGINE (Zero AI Modification)
-    if (tryonEngine === "direct_exact" && jewelPreview) {
-      try {
-        const compositeDataUrl = await createDirectExactTryOn({
-          modelUrl: "/models/bare_model.png",
-          jewelleryUrl: jewelPreview,
-          jewelleryType: selectedJewelType,
-          watermarkText,
-          enableWatermark,
-        });
-
-        const exactImage = {
-          id: "exact-" + Date.now(),
-          url: compositeDataUrl,
-          angle: "front",
-          label: `${selectedJewelType.toUpperCase()} | 100% Exact Direct Fit (Zero AI Distortion)`,
-          resolution: "4K Ultra",
-          fidelity_score: 100,
-          model_info: "Royal Silk Atelier Indian Model (Zero AI Modification)",
-        };
-
-        setIsGenerating(false);
-        setGeneratedImages([exactImage]);
-        setActiveImage(exactImage);
-        return;
-      } catch (directErr) {
-        console.warn("Direct composite fallback to AI engine:", directErr);
-      }
-    }
 
     try {
       const res = await fetch(getApiUrl("/jobs"), {
@@ -618,48 +586,6 @@ export default function StudioPage() {
                   </button>
                 );
               })}
-            </div>
-
-            {/* Engine Selection: 100% Direct CAD Match vs AI Editorial Lookbook */}
-            <div className="pt-4 border-t border-white/10 space-y-2">
-              <span className="text-xs font-bold text-neutral-200 block">Try-On Fidelity Engine</span>
-              <div className="grid grid-cols-2 gap-2">
-                <button
-                  type="button"
-                  onClick={() => setTryonEngine("direct_exact")}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
-                    tryonEngine === "direct_exact"
-                      ? "border-amber-400 bg-amber-400/10 text-amber-300 shadow-md shadow-amber-500/10"
-                      : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold">100% Direct Match</span>
-                    {tryonEngine === "direct_exact" && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </div>
-                  <span className="text-[10px] text-neutral-400 block leading-tight">
-                    Zero AI modification. Preserves exact uploaded pixels on model.
-                  </span>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => setTryonEngine("ai_vogue")}
-                  className={`p-2.5 rounded-xl border text-left transition-all ${
-                    tryonEngine === "ai_vogue"
-                      ? "border-amber-400 bg-amber-400/10 text-amber-300 shadow-md shadow-amber-500/10"
-                      : "border-white/10 bg-white/5 text-neutral-400 hover:text-white"
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-1">
-                    <span className="text-xs font-bold">AI Vogue Editorial</span>
-                    {tryonEngine === "ai_vogue" && <Check className="w-3.5 h-3.5 text-amber-400" />}
-                  </div>
-                  <span className="text-[10px] text-neutral-400 block leading-tight">
-                    Gemini CAD prompt synthesis for high-fashion catalogue rendering.
-                  </span>
-                </button>
-              </div>
             </div>
 
             {/* Client Brand Watermark & Try-On Fidelity Options */}
