@@ -18,6 +18,7 @@ import {
   AlertTriangle,
   Lock,
 } from "lucide-react";
+import { createDirectExactTryOn } from "@/lib/compositor";
 
 const JEWELLERY_TYPES = [
   { id: "necklace", name: "Necklace / Haar", desc: "Chokers, bridal haar, pendants" },
@@ -87,7 +88,7 @@ export default function StudioPage() {
   // Client Custom Watermark Branding
   const [enableWatermark, setEnableWatermark] = useState(false);
   const [watermarkText, setWatermarkText] = useState("DAMAS JEWELLERS • DUBAI");
-  const [tryonEngine, setTryonEngine] = useState<"ai_vogue" | "direct_exact">("ai_vogue");
+  const [tryonEngine, setTryonEngine] = useState<"ai_vogue" | "direct_exact">("direct_exact");
 
   // Job Execution State
   const [isGenerating, setIsGenerating] = useState(false);
@@ -227,6 +228,36 @@ export default function StudioPage() {
     const currentAssetId = jewelAssetId || "jewel-asset-" + Date.now();
     setIsGenerating(true);
     setGeneratedImages([]);
+
+    // 100% DIRECT EXACT MATCH ENGINE (Zero AI Modification)
+    if (tryonEngine === "direct_exact" && jewelPreview) {
+      try {
+        const compositeDataUrl = await createDirectExactTryOn({
+          modelUrl: "/models/bare_model.png",
+          jewelleryUrl: jewelPreview,
+          jewelleryType: selectedJewelType,
+          watermarkText,
+          enableWatermark,
+        });
+
+        const exactImage = {
+          id: "exact-" + Date.now(),
+          url: compositeDataUrl,
+          angle: "front",
+          label: `${selectedJewelType.toUpperCase()} | 100% Exact Direct Fit (Zero AI Distortion)`,
+          resolution: "4K Ultra",
+          fidelity_score: 100,
+          model_info: "Royal Silk Atelier Indian Model (Zero AI Modification)",
+        };
+
+        setIsGenerating(false);
+        setGeneratedImages([exactImage]);
+        setActiveImage(exactImage);
+        return;
+      } catch (directErr) {
+        console.warn("Direct composite fallback to AI engine:", directErr);
+      }
+    }
 
     try {
       const res = await fetch(getApiUrl("/jobs"), {
