@@ -39,12 +39,15 @@ export async function POST(req: NextRequest) {
       cdnUrl = `data:${mimeType};base64,${fileBuffer.toString("base64")}`;
     }
 
-    // 2. Intelligent AI Vision Classification with Agnes Multimodal
+    // 2. Intelligent AI Vision Classification with Gemini Vision / Agnes LLM
     let analysis: any = null;
     try {
-      analysis = await analyzeJewelleryWithAgnes(fileBuffer, mimeType);
+      analysis = await analyzeJewelleryWithAgnes(fileBuffer, mimeType, {
+        filename,
+        category: selectedCategoryFromClient,
+      });
     } catch (visionErr) {
-      console.warn("Agnes vision analysis failed, falling back to rule-based detection:", visionErr);
+      console.warn("AI vision analysis failed, falling back to rule-based detection:", visionErr);
 
       // Rule-based fallback if vision API is temporarily unreachable
       const lowerName = (filename + " " + (selectedCategoryFromClient || "")).toLowerCase();

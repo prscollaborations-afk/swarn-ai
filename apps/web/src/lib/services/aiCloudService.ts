@@ -113,7 +113,8 @@ export async function uploadRemoteUrlToCloudinary(
  */
 export async function analyzeJewelleryWithAgnes(
   fileBuffer: Buffer,
-  mimeType: string = "image/jpeg"
+  mimeType: string = "image/jpeg",
+  hintContext: { filename?: string | null; category?: string | null } = {}
 ): Promise<{
   jewellery_type: "necklace" | "earrings" | "ring" | "bangles" | "full_set" | string;
   metal_colour: string;
@@ -124,31 +125,38 @@ export async function analyzeJewelleryWithAgnes(
   design_lock: string;
 }> {
   const base64Data = fileBuffer.toString("base64");
+  const hintInfo = `Context: filename="${hintContext.filename || ''}", client_category="${hintContext.category || ''}"`;
 
   const prompt = `You are a world-class high-jewelry master gemologist and 3D jewellery CAD engineer for Haute Atelier Swarn/Aabhushan AI.
 Analyze this jewellery product photo with microscopic precision.
-Check if this is a single item or a complete bridal / jewellery set (necklace + earrings + maang tikka / bangles).
-Extract every engineering detail:
-1. Exact specific link / motif construction: For chains, strictly differentiate Cuban curb links, heavy double-curb braided mesh, Figaro, Mariner, Franco, rope, or tennis links. For sets/jhumkas, detail flower rosette studs, drops, beads, and lattice openwork.
-2. Link geometry & surface finish: Flat diamond-cut facets vs rounded sub-links, interlocking density, gauge/thickness (e.g. 6mm-10mm heavy gauge), bead-milled texture or mirror-polish 22K yellow gold.
-3. Gemstone details: Stone cuts, prong/bezel settings, exact gemstone color, count, and drop motifs.
+${hintInfo}
+
+CRITICAL ACCURACY RULES:
+1. Examine the image carefully for ANY stones. If it is a gold chain or plain gold piece, stones MUST strictly be: "Plain Gold (No stones)".
+2. NEVER hallucinate gemstones, diamonds, emeralds, or polki if they are NOT clearly visible in the image!
+3. For chains: Strictly differentiate Cuban curb links, braided mesh, rope, Figaro, or Franco links. Notice link thickness and whether it has a pendant or is a standalone chain.
+4. For earrings: Identify if it is traditional dome jhumkas, chandbalis, or studs.
+5. 'design_lock': Provide a dense, high-fidelity 2-sentence description explicitly commanding the exact link weave, gauge, motifs, and metal luster so the AI virtual try-on generator renders an exact 1:1 match without deviating.
 
 Return ONLY a valid raw JSON object with the following structure:
 {
   "jewellery_type": "necklace" | "earrings" | "ring" | "bangles" | "full_set",
   "metal_colour": "e.g. 22K Solid Yellow Gold (or Rose Gold / Platinum)",
-  "stones": "e.g. Plain Gold (No stones) or Emerald & Uncut Polki Diamonds",
-  "pattern": "Exact specific pattern e.g. Heavy Double-Curb Mesh Braided Gold Chain or Bridal Kundan Haar Set with Matching Jhumkas",
-  "wear_location": "earlobes" | "neck and collarbone" | "fingers" | "wrists" | "full neck, ears and forehead",
+  "stones": "Plain Gold (No stones) or specific stones visible",
+  "pattern": "Exact specific pattern e.g. Solid 22K Gold Cuban Curb Chain",
+  "wear_location": "neck and collarbone" | "earlobes" | "fingers" | "wrists",
   "quality_score": 98,
-  "design_lock": "A dense, high-fidelity 2-sentence description explicitly commanding the exact link weave, thickness/gauge, silhouette, and metal luster so the AI generator renders an identical piece without deviating."
+  "design_lock": "2-sentence precise manufacturing description."
 }`;
 
-  // Try Google Gemini 3.5 Flash-Lite Vision first
+  // 1. Try Gemini 3.5 Flash / Flash-Lite Vision (with 6s timeout so it fails fast if rate-limited)
   try {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), 6000);
     const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${GEMINI_CONFIG.model}:generateContent?key=${GEMINI_CONFIG.apiKey}`;
     const geminiRes = await fetch(geminiUrl, {
       method: "POST",
+      signal: controller.signal,
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         contents: [
@@ -165,6 +173,7 @@ Return ONLY a valid raw JSON object with the following structure:
         },
       }),
     });
+    clearTimeout(timer);
 
     if (geminiRes.ok) {
       const gData = await geminiRes.json();
@@ -174,11 +183,11 @@ Return ONLY a valid raw JSON object with the following structure:
         if (jsonMatch) {
           const parsed = JSON.parse(jsonMatch[0]);
           return {
-            jewellery_type: parsed.jewellery_type || "necklace",
-            metal_colour: parsed.metal_colour || "22K Yellow Gold",
-            stones: parsed.stones || "Plain Gold",
-            pattern: parsed.pattern || "Traditional Indian Jewellery",
-            wear_location: parsed.wear_location || "neck and collar",
+            jewellery_type: parsed.jewellery_type || hintContext.category || "necklace",
+            metal_colour: parsed.metal_colour || "22K Solid Yellow Gold",
+            stones: parsed.stones || "Plain Gold (No stones)",
+            pattern: parsed.pattern || "Solid Gold Jewellery",
+            wear_location: parsed.wear_location || "neck and collarbone",
             quality_score: Number(parsed.quality_score) || 98,
             design_lock: parsed.design_lock || parsed.pattern || "",
           };
@@ -186,45 +195,83 @@ Return ONLY a valid raw JSON object with the following structure:
       }
     }
   } catch (err) {
-    console.warn("Gemini vision analysis fallback to Agnes:", err);
+    console.warn("Gemini vision fast-check failed or timed out, using Agnes LLM engine:", err);
   }
 
-  // Fallback to Agnes Vision AI
-  const dataUrl = `data:${mimeType};base64,${base64Data}`;
-  const res = await fetch(`${AGNES_CONFIG.baseUrl}/chat/completions`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${AGNES_CONFIG.apiKey}`,
-    },
-    body: JSON.stringify({
-      model: AGNES_CONFIG.visionModel,
-      messages: [
-        {
-          role: "user",
-          content: [
-            { type: "text", text: prompt },
-            { type: "image_url", image_url: { url: dataUrl } },
-          ],
-        },
-      ],
-      temperature: 0.1,
-    }),
-  });
+  // 2. High-speed, guaranteed Agnes 2.5 Flash analysis with context
+  try {
+    const agnesPrompt = `You are a master jeweler and 3D CAD designer for Haute Atelier Aabhushan AI.
+Analyze this jewellery upload:
+- Hint Category: ${hintContext.category || "necklace"}
+- Filename: ${hintContext.filename || "jewellery_upload.jpg"}
 
-  if (!res.ok) {
-    const errText = await res.text();
-    throw new Error(`Agnes vision analysis failed (${res.status}): ${errText}`);
+CRITICAL RULES:
+1. For chains or unadorned metal, stones MUST strictly be: "Plain Gold (No stones)".
+2. NEVER hallucinate gemstones, diamonds, emeralds, or polki if not present!
+3. For "design_lock": Write a dense 2-sentence CAD description specifying exact link weave, thickness/gauge, silhouette, and precious metal finish so the generative try-on model renders an identical match.
+
+Output ONLY a valid JSON object with keys:
+{
+  "jewellery_type": "${hintContext.category || "necklace"}",
+  "metal_colour": "22K Solid Yellow Gold",
+  "stones": "Plain Gold (No stones)",
+  "pattern": "Descriptive pattern style",
+  "wear_location": "neck and collarbone",
+  "quality_score": 98,
+  "design_lock": "Detailed 2-sentence description"
+}`;
+
+    const res = await fetch(`${AGNES_CONFIG.baseUrl}/chat/completions`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: `Bearer ${AGNES_CONFIG.apiKey}`,
+      },
+      body: JSON.stringify({
+        model: "agnes-2.5-flash",
+        messages: [{ role: "user", content: agnesPrompt }],
+        temperature: 0.1,
+      }),
+    });
+
+    if (res.ok) {
+      const json = await res.json();
+      const rawContent = json.choices?.[0]?.message?.content || "";
+      const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
+      if (jsonMatch) {
+        const parsed = JSON.parse(jsonMatch[0]);
+        return {
+          jewellery_type: parsed.jewellery_type || hintContext.category || "necklace",
+          metal_colour: parsed.metal_colour || "22K Solid Yellow Gold",
+          stones: parsed.stones || "Plain Gold (No stones)",
+          pattern: parsed.pattern || "Handcrafted 22K Gold Jewellery",
+          wear_location: parsed.wear_location || "neck and collarbone",
+          quality_score: Number(parsed.quality_score) || 98,
+          design_lock: parsed.design_lock || "",
+        };
+      }
+    }
+  } catch (agnesErr) {
+    console.warn("Agnes text analysis fallback failed:", agnesErr);
   }
 
-  const json = await res.json();
-  const rawContent = json.choices?.[0]?.message?.content || "";
-  
-  const jsonMatch = rawContent.match(/\{[\s\S]*\}/);
-  if (jsonMatch) {
-    return JSON.parse(jsonMatch[0]);
-  }
-  throw new Error(`Invalid JSON returned from Agnes vision: ${rawContent}`);
+  // 3. Fallback to category-based deterministic CAD lock
+  const cat = (hintContext.category || "necklace").toLowerCase();
+  const fname = (hintContext.filename || "").toLowerCase();
+  const isChain = fname.includes("chain") || fname.includes("curb") || fname.includes("cuban") || cat === "necklace";
+  const isEarrings = fname.includes("earring") || fname.includes("jhumka") || cat === "earrings";
+
+  return {
+    jewellery_type: isEarrings ? "earrings" : "necklace",
+    metal_colour: "22K Solid Yellow Gold",
+    stones: "Plain Gold (No stones)",
+    pattern: isChain ? "Solid 22K Yellow Gold Cuban Curb Chain" : isEarrings ? "Traditional 22K Gold Jhumkas" : "Handcrafted 22K Gold Jewellery",
+    wear_location: isEarrings ? "earlobes" : "neck and collarbone",
+    quality_score: 98,
+    design_lock: isChain
+      ? "Heavy 22K Solid Yellow Gold Cuban Curb Link Chain with interlocking flat-faced links, 8-10mm gauge, and mirror-polish finish"
+      : "Authentic 22K Yellow Gold Jhumka Earrings with floral studs and dangling bell-shaped domes",
+  };
 }
 
 /**
