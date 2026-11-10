@@ -49,9 +49,10 @@ export async function POST(req: NextRequest) {
       // Rule-based fallback if vision API is temporarily unreachable
       const lowerName = (filename + " " + (selectedCategoryFromClient || "")).toLowerCase();
       let detectedType = selectedCategoryFromClient || "necklace";
-      let wearLoc = "neck and decolletage";
-      let pattern = "Choker / Haar Handcrafted Filigree";
-      let stones = "Polki Diamonds & Emerald Drops";
+      let wearLoc = "neck and collarbone";
+      let pattern = "Solid 22K Yellow Gold Chain";
+      let stones = "Plain Gold (No stones)";
+      let designLock = "Authentic 22K Solid Gold Chain with interlocking links, precision polish, and hallmark lock";
 
       if (
         lowerName.includes("earring") ||
@@ -65,7 +66,8 @@ export async function POST(req: NextRequest) {
         detectedType = "earrings";
         wearLoc = "earlobes";
         pattern = "Traditional 22K Gold Jhumka Domes with Beaded Drops";
-        stones = "Kundan, Polki & Pearl Hangings";
+        stones = "Plain Gold or Fine Pearls";
+        designLock = "Authentic 22K Yellow Gold Jhumka Earrings with floral studs and dangling bell domes";
       } else if (
         lowerName.includes("ring") ||
         lowerName.includes("anguthi") ||
@@ -74,8 +76,9 @@ export async function POST(req: NextRequest) {
       ) {
         detectedType = "ring";
         wearLoc = "fingers";
-        pattern = "Royal Statement Cocktail Ring";
-        stones = "Brilliant Cut Diamond & Ruby Centerpiece";
+        pattern = "Statement 22K Gold Band";
+        stones = "Polished Gold (No stones)";
+        designLock = "Authentic 22K Yellow Gold Ring with precision polished finish and hallmark lock";
       } else if (
         lowerName.includes("bangle") ||
         lowerName.includes("kada") ||
@@ -84,18 +87,29 @@ export async function POST(req: NextRequest) {
       ) {
         detectedType = "bangles";
         wearLoc = "wrists";
-        pattern = "Carved 22K Gold Temple Kada";
-        stones = "Ruby & Emerald Floral Setting";
+        pattern = "Solid 22K Gold Kada";
+        stones = "Plain Gold (No stones)";
+        designLock = "Authentic 22K Solid Yellow Gold Kada with etched traditional motif";
+      } else if (
+        lowerName.includes("curb") ||
+        lowerName.includes("cuban") ||
+        lowerName.includes("chain")
+      ) {
+        detectedType = "necklace";
+        wearLoc = "neck and collarbone";
+        pattern = "Solid 22K Gold Cuban Curb Chain";
+        stones = "Plain Gold (No stones)";
+        designLock = "Heavy 22K Solid Yellow Gold Cuban Curb Link Chain with interlocking links and mirror-finish";
       }
 
       analysis = {
         jewellery_type: detectedType,
-        metal_colour: "22K Yellow Gold",
+        metal_colour: "22K Solid Yellow Gold",
         stones: stones,
         pattern: pattern,
         wear_location: wearLoc,
         quality_score: 98,
-        design_lock: `Authentic 22K Gold ${detectedType} with precision stone setting and hallmark lock`,
+        design_lock: designLock,
       };
     }
 
