@@ -50,13 +50,14 @@ export async function POST(req: NextRequest) {
       try {
         const generatedImages: TryOnImage[] = [];
 
-        // Generate primary shot with real AI
+        // Generate primary shot with real AI using Multimodal Image + Text Conditioning
         let primaryUrl = "";
         try {
           primaryUrl = await generateVirtualTryOn({
             jewelleryType,
             designLock,
             angle: targetAngles[0] || "front",
+            imageUrl: body.asset_url || body.image_url || body.jewel_url,
             modelTone: body.skin_tone || "warm wheatish",
             faceShape: body.face_shape || "oval",
             gender: body.gender || "female",

@@ -60,6 +60,7 @@ export default function StudioPage() {
   const [jewelFile, setJewelFile] = useState<File | null>(null);
   const [jewelPreview, setJewelPreview] = useState<string | null>(null);
   const [jewelAssetId, setJewelAssetId] = useState<string | null>(null);
+  const [jewelCloudUrl, setJewelCloudUrl] = useState<string | null>(null);
   const [isJewelUploading, setIsJewelUploading] = useState(false);
   const [analysis, setAnalysis] = useState<any>(null);
   const [selectedJewelType, setSelectedJewelType] = useState("necklace");
@@ -120,6 +121,9 @@ export default function StudioPage() {
       const data = await res.json();
       if (data.success) {
         setJewelAssetId(data.data.id);
+        if (data.data.url) {
+          setJewelCloudUrl(data.data.url);
+        }
         setAnalysis(data.data.analysis);
         if (data.data.analysis?.jewellery_type) {
           const detected = data.data.analysis.jewellery_type.toLowerCase();
@@ -233,6 +237,7 @@ export default function StudioPage() {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           asset_id: currentAssetId,
+          asset_url: jewelCloudUrl || undefined,
           model_source: modelMode,
           user_person_asset_id: personAssetId,
           jewellery_type: selectedJewelType,

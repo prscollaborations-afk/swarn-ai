@@ -223,16 +223,18 @@ Return ONLY a valid raw JSON object with the following structure:
 
 /**
  * Generate virtual try-on with Agnes Image 2.5 and save to Cloudinary
+ * Passes reference jewellery image URL directly to the generative diffusion model (Image-to-Image / Multimodal conditioning)
  */
 export async function generateVirtualTryOn(options: {
   jewelleryType: string;
   designLock: string;
   angle: string;
+  imageUrl?: string;
   modelTone?: string;
   faceShape?: string;
   gender?: string;
 }): Promise<string> {
-  const { jewelleryType, designLock, angle, modelTone = "warm wheatish", faceShape = "oval", gender = "female" } = options;
+  const { jewelleryType, designLock, angle, imageUrl, modelTone = "warm wheatish", faceShape = "oval", gender = "female" } = options;
 
   let angleDesc = "front symmetrical high-fashion catalogue portrait shot, chest-up view";
   let wearTarget = "";
@@ -270,7 +272,19 @@ export async function generateVirtualTryOn(options: {
   }
 
   // Craft high-precision prompt enforcing exact physical replication of design_lock
-  const prompt = `Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, ${garment}) ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate: ${designLock}. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${strictNegativeConstraint} ${angleDesc}.`;
+  const prompt = `Virtual Try-On Fashion Shoot: Award-winning ultra-photorealistic editorial beauty photograph for a luxury Vogue jewellery campaign. An elegant royal Indian ${gender} model (${modelTone} skin tone, ${faceShape} face shape, ${garment}) ${wearTarget}. The ${jewelleryType} must strictly and faithfully replicate the exact item shown in the reference image: ${designLock}. Symmetrical studio portrait lighting, high-end jewellery atelier background, 8k resolution, razor-sharp focus on the precious metal and craftsmanship. ${strictNegativeConstraint} ${angleDesc}.`;
+
+  const requestBody: any = {
+    model: AGNES_CONFIG.imageGenModel,
+    prompt: prompt,
+    n: 1,
+    size: "1024x1024",
+  };
+
+  // If a valid Cloudinary/remote image URL is available, pass it directly for multimodal image-to-image conditioning!
+  if (imageUrl && imageUrl.startsWith("http")) {
+    requestBody.image = imageUrl;
+  }
 
   const res = await fetch(`${AGNES_CONFIG.baseUrl}/images/generations`, {
     method: "POST",
@@ -278,12 +292,7 @@ export async function generateVirtualTryOn(options: {
       "Content-Type": "application/json",
       Authorization: `Bearer ${AGNES_CONFIG.apiKey}`,
     },
-    body: JSON.stringify({
-      model: AGNES_CONFIG.imageGenModel,
-      prompt: prompt,
-      n: 1,
-      size: "1024x1024",
-    }),
+    body: JSON.stringify(requestBody),
   });
 
   if (!res.ok) {
